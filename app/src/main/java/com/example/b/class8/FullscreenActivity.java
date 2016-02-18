@@ -26,9 +26,7 @@ import android.widget.Toast;
 public class FullscreenActivity extends FragmentActivity implements OnFragmentInteractionListener {
 
     boolean showToast=false;
-    private RecipeBook recipeBook;
-    private Pantry pantry;
-    private MealMenu menu;
+    FoodAppState appState=new FoodAppState();
     /**
      * Whether or not the system UI should be auto-hidden after
      * {@link #AUTO_HIDE_DELAY_MILLIS} milliseconds.
@@ -163,9 +161,7 @@ public class FullscreenActivity extends FragmentActivity implements OnFragmentIn
     }
 
     private void initializeApp() {
-        this.menu = new MealMenu();
-        pantry = new Pantry();
-        recipeBook = new RecipeBook();
+
     }
 
 

@@ -16,6 +16,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -38,6 +39,7 @@ public class FoodListFragment extends Fragment implements FoodFragment.OnFoodFra
     private FoodFragment foodFragment;
     public AllFoods allFoods=new AllFoods();
     FoodListAdapter foodListAdapter;
+    public final String foodFragmentTag="foodFragmentTag";
     public FoodListFragment() {
         // Required empty public constructor
     }
@@ -63,26 +65,38 @@ public class FoodListFragment extends Fragment implements FoodFragment.OnFoodFra
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         foodFragment=FoodFragment.newInstance(new Food());
         //FoodFragment foodFragment = (FoodFragment)fragmentManager.findFragmentById(R.id.foodFragment);
-        fragmentTransaction.replace(R.id.flFoodFragmentContainer,foodFragment,"foodFragmentTag");
+        fragmentTransaction.replace(R.id.flFoodFragmentContainer,foodFragment,foodFragmentTag);
         fragmentTransaction.commit();
 
     }
 
-    public void cancelFood(Food food){
+    public void cancelFood(){
         FragmentManager fragmentManager = getChildFragmentManager();
-        FoodFragment foodFragment = (FoodFragment)  fragmentManager.findFragmentByTag("foodFragmentTag");
+        FoodFragment foodFragment = (FoodFragment)  fragmentManager.findFragmentByTag(foodFragmentTag);
         //FragmentManager fragmentManager = this.getFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         fragmentTransaction.remove(foodFragment);
         fragmentTransaction.commit();
-        Toast.makeText(this.getContext(), "FoodListFragment.cancelFood:[" + food.foodName + "]", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this.getContext(), "FoodListFragment.cancelFood", Toast.LENGTH_SHORT).show();
     }
     public void saveFood(Food food){
 
-        Food theFood=this.foodFragment.getFood();
+        Food theFood=food;//=this.foodFragment.getFood();
         this.allFoods.addFood(theFood);
         this.refreshList();
+        cancelFood();
         Toast.makeText(this.getContext(), "FoodListFragment.saveFood:[" + food.foodName + "]", Toast.LENGTH_SHORT).show();
+    }
+
+    public void updateFood(Food food,int position){
+
+        Food theFood=food;//this.foodFragment.getFood();
+        Food toUpdate=this.allFoods.foodList.get(position);
+        toUpdate.category=theFood.category;
+        toUpdate.foodName=theFood.foodName;
+        this.refreshList();
+        cancelFood();
+        Toast.makeText(this.getContext(), "FoodListFragment.updateFood:[" + food.foodName + "]", Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -142,16 +156,22 @@ public class FoodListFragment extends Fragment implements FoodFragment.OnFoodFra
         this.buildList(this.getView());
     }
     public void onEditClick(int position) {
+
+        Food toEdit=this.allFoods.foodList.get(position);
         FragmentManager fragmentManager = this.getChildFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-        foodFragment=FoodFragment.newInstance(new Food());
-        fragmentTransaction.replace(R.id.flFoodFragmentContainer,foodFragment,"foodFragmentTag");
+        foodFragment=FoodFragment.newInstance(toEdit,position);
+        fragmentTransaction.replace(R.id.flFoodFragmentContainer,foodFragment,foodFragmentTag);
         fragmentTransaction.commit();
 
 
 
-        /*Food toEdit=this.allFoods.foodList.get(position);
-        Toast.makeText(this.getContext(), "onEditClick: edit item:"+position, Toast.LENGTH_SHORT).show();
+        /*TextView name=(TextView) foodFragment.getView().findViewById(R.id.foodName);
+        name.setText(foodFragment.theFood.foodName);
+        Spinner categorySpinner=(Spinner) foodFragment.getView().findViewById(R.id.foodCategorySpinner);
+        int categoryInt=foodFragment.theFood.category.ordinal();
+        categorySpinner.setSelection(categoryInt, true);*/
+        /*Toast.makeText(this.getContext(), "onEditClick: edit item:"+position, Toast.LENGTH_SHORT).show();
         TextView i=(TextView) this.getView().findViewById(R.id.itemName);
         i.setText(toEdit.theItem.itemName);
         TextView q=(TextView) this.findViewById(R.id.quantity);

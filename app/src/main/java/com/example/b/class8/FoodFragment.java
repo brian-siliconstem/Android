@@ -13,12 +13,15 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import java.util.Iterator;
 
 
 public class FoodFragment extends Fragment {
 
-
+    public int position=-1;
     public Food theFood;
 
 
@@ -27,6 +30,7 @@ public class FoodFragment extends Fragment {
 
     public Button cancelFoodB;
     public Button saveFoodB;
+    public Button updateFoodB;
 
     public FoodFragment() {
         // Required empty public constructor
@@ -40,10 +44,14 @@ public class FoodFragment extends Fragment {
 
      * @return A new instance of fragment FoodFragment.
      */
-
     public static FoodFragment newInstance(Food f) {
+        return newInstance(f,-1);
+    }
+    public static FoodFragment newInstance(Food f, int position) {
         FoodFragment fragment = new FoodFragment();
         fragment.theFood=f;
+        fragment.position=position;
+        //category.setSelection(FoodCategory.valueOf(category.getSelectedItem().toString() + ""));
         Bundle args = new Bundle();
         //args.putString(ARG_PARAM1, param1);
 
@@ -77,41 +85,60 @@ public class FoodFragment extends Fragment {
         cancelFoodB.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                cancelFood(view);
+               cancelFood();
             }
         });
+
 
         saveFoodB = (Button) retView.findViewById(R.id.saveButton);
         saveFoodB.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                addFood(view);
+               saveFood();
             }
         });
 
 
-        saveFoodB.setOnClickListener(new View.OnClickListener() {
+        updateFoodB = (Button) retView.findViewById(R.id.updateButton);
+        updateFoodB.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // ((OnFoodFragmentInteractionListener)getParentFragment()).saveFood(theFood);
-
-                foodListener.saveFood(theFood);
+                updateFood();
             }
         });
 
-        cancelFoodB.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                // ((OnFoodFragmentInteractionListener) getParentFragment()).cancelFood(theFood);
-                foodListener.cancelFood(theFood);
-            }
-        });
+        if(position==-1){
+            updateFoodB.setVisibility(View.INVISIBLE);
+        }
+        else{
+            saveFoodB.setVisibility(View.INVISIBLE);
+        }
 
-
+        TextView name=(TextView)retView.findViewById(R.id.foodName);
+        name.setText(this.theFood.foodName);
+        //Spinner categorySpinner=(Spinner) retView.findViewById(R.id.foodCategorySpinner);
+        int categoryInt=this.theFood.category.ordinal();
+        categorySpinner.setSelection(categoryInt, true);
         return retView;
     }
-
-
+    public void cancelFood(){
+        foodListener.cancelFood();
+    }
+    public void updateFood(){
+        syncFood();
+        foodListener.updateFood(theFood, position);
+    }
+    public void saveFood(){
+        theFood=new Food();
+        syncFood();
+        foodListener.saveFood(theFood);
+    }
+    public void syncFood(){
+        EditText name=(EditText) this.getView().findViewById(R.id.foodName);
+        Spinner categorySpinner=(Spinner) this.getView().findViewById(R.id.foodCategorySpinner);
+        theFood.foodName=name.getText().toString();
+        theFood.category=FoodCategory.valueOf(categorySpinner.getSelectedItem().toString());
+    }
     public Food getFood(){
         Food theFood=new Food();
 
@@ -123,14 +150,7 @@ public class FoodFragment extends Fragment {
 
         return theFood;
     }
-    public void addFood(View view) {
-        //OnFoodFragmentInteractionListener listener=(OnFoodFragmentInteractionListener)getParentFragment();
-        foodListener.saveFood(new Food("test"));
-    }
-    public void cancelFood(View view){
-        //OnFoodFragmentInteractionListener listener=(OnFoodFragmentInteractionListener)getParentFragment();
-        foodListener.cancelFood(new Food("test"));
-    }
+
 
 
 
@@ -167,7 +187,8 @@ public class FoodFragment extends Fragment {
 
 
     public interface OnFoodFragmentInteractionListener {
-        void cancelFood(Food food);
+        void cancelFood();
         void saveFood(Food food);
+        void updateFood(Food food,int position);
     }
 }
