@@ -9,7 +9,17 @@ import java.util.List;
  */
 public class AllFoods implements Serializable {
     public List<Food> foodList=new ArrayList<Food>();
-    public void addFood(Food theFood){
-        foodList.add(theFood);
+    public boolean addFood(Food theFood){
+        //check for duplicates
+
+        boolean isUnique=true;
+        for (Food f  : foodList) {
+            if (f.foodName.equalsIgnoreCase(theFood.foodName)&&f.category==theFood.category) {
+                isUnique=false;
+            }
+        }
+
+        if(isUnique)foodList.add(theFood);
+        return isUnique;
     }
 }

@@ -19,6 +19,9 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Toast;
 
+import java.util.HashMap;
+import java.util.HashSet;
+
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
@@ -27,6 +30,7 @@ public class FullscreenActivity extends FragmentActivity implements OnFragmentIn
 
     boolean showToast=false;
     FoodAppState appState=new FoodAppState();
+
     /**
      * Whether or not the system UI should be auto-hidden after
      * {@link #AUTO_HIDE_DELAY_MILLIS} milliseconds.
@@ -103,23 +107,43 @@ public class FullscreenActivity extends FragmentActivity implements OnFragmentIn
 
         setContentView(R.layout.activity_fullscreen);
 
-        //Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        //this.setSupportActionBar(toolbar);
+        //load the appState
+        try {
+            this.loadAppState();
+        }
+        catch(Exception e){
+            toast("Exception in loadAppState:"+e.getMessage());
+        }
+
+        //add a few open recipes for testing - this will later be replaced by the recipebook tab opening recipes
+        HashMap<String,Recipe> openRecipes=new HashMap<String,Recipe>();
+        Recipe r1=new Recipe("Carrots","Take a carrot and put it on a Plate",new FoodItem(new Food("Carrot"),1));
+        openRecipes.put(r1.recipeName,r1);
+        Recipe r2=new Recipe("Sandqich","Take two pieces of bread and put something between them",new FoodItem(new Food("Bread"),2));
+        openRecipes.put(r2.recipeName,r2);
+        Recipe r3=new Recipe("Soda","Open a can of soda",new FoodItem(new Food("Can of Cola"),1));
+        openRecipes.put(r3.recipeName,r3);
+        this.appState.openRecipes=openRecipes;
 
         // Get the ViewPager and set it's PagerAdapter so that it can display items
         final ViewPager viewPager = (ViewPager) findViewById(R.id.pager);
-        viewPager.setAdapter(new MainPagerAdapter(getSupportFragmentManager(),
-                FullscreenActivity.this));
+        viewPager.setAdapter(new MainPagerAdapter(getSupportFragmentManager(),this,this.appState));
 
         // Give the TabLayout the ViewPager
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tab_layout);
-        //tabLayout.addTab(tabLayout.newTab().setText("Tab 1"));
-        //tabLayout.addTab(tabLayout.newTab().setText("Tab 2"));
 
+        tabLayout.setTabMode(TabLayout.MODE_SCROLLABLE);
         tabLayout.setupWithViewPager(viewPager);
 
         viewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout) {
 
+
+            /*<HorizontalScrollView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:fillViewport="true"
+        android:scrollbars="none"
+        android:layout_alignParentBottom="true">*/
             // This method will be invoked when a new page becomes selected.
             @Override
             public void onPageSelected(int position) {
@@ -143,7 +167,7 @@ public class FullscreenActivity extends FragmentActivity implements OnFragmentIn
         tabLayout.setOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
-                toast("FullScreenActivity.onTabSelected:[" + tab.getPosition()+"]");
+                toast("FullScreenActivity.onTabSelected:[" + tab.getPosition() + "]");
                 viewPager.setCurrentItem(tab.getPosition());
             }
 
@@ -157,12 +181,11 @@ public class FullscreenActivity extends FragmentActivity implements OnFragmentIn
 
             }
         });
-        initializeApp();
-    }
 
-    private void initializeApp() {
 
     }
+
+
 
 
 
@@ -174,6 +197,7 @@ public class FullscreenActivity extends FragmentActivity implements OnFragmentIn
         // created, to briefly hint to the user that UI controls
         // are available.
         delayedHide(100);
+        this.loadAppState();
     }
 
     private void toggle() {
@@ -220,8 +244,7 @@ public class FullscreenActivity extends FragmentActivity implements OnFragmentIn
     }
 
 
-    public void addFood(Food f) {
-    }
+
 
     public void onFragmentInteraction(Uri uri)
     {
@@ -230,5 +253,34 @@ public class FullscreenActivity extends FragmentActivity implements OnFragmentIn
 
     public void toast(String message){
         if (showToast) Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    protected void onPause(){
+        this.saveAppState();
+        super.onPause();
+    }
+
+    public void saveAppState(){
+        try {
+            this.appState.saveAllFoodsJson(openFileOutput(appState.allFoodsFilename, this.MODE_PRIVATE));
+        }
+        catch(java.io.FileNotFoundException e){
+            toast("saveAppState:FileNotFoundException"+e.getMessage());
+        }
+        catch(Exception e){
+            toast("saveAppState:Exception:"+e.getMessage());
+        }
+    }
+    public void loadAppState(){
+        try {
+            this.appState.loadAllFoodsJson( this.openFileInput(appState.allFoodsFilename));
+        }
+        catch(java.io.FileNotFoundException e){
+            toast("loadAppState:FileNotFoundException");
+        }
+        catch(Exception e){
+            toast("loadAppState:Exception:"+e.getMessage());
+        }
     }
 }

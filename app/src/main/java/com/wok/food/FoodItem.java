@@ -5,5 +5,10 @@ import java.io.Serializable;
  */
 public class FoodItem implements Serializable{
     Food food;
-    Double quantity;
+    double quantity;
+    public FoodItem(Food f, double quant)
+    {
+        food=f;
+        quantity=quant;
+    }
 }
